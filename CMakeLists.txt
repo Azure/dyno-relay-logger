@@ -95,6 +95,9 @@ target_include_directories(dynorelaylogger_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(UUID REQUIRED uuid)
+
 target_link_libraries(dynorelaylogger_lib PUBLIC
     glog::glog
     gflags::gflags
@@ -107,6 +110,7 @@ target_link_libraries(dynorelaylogger_lib PUBLIC
     OpenSSL::SSL
     OpenSSL::Crypto
     Threads::Threads
+    ${UUID_LIBRARIES}
 )
 
 # ─── DynoRelayLogger executable ───
