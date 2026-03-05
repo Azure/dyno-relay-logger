@@ -28,14 +28,16 @@
 
 #include <openssl/evp.h>
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
+#include <uuid/uuid.h>
 
 namespace dynorelaylogger {
 
 GatherSystemInfo::GatherSystemInfo() {
-  session_uuid_ = boost::uuids::to_string(boost::uuids::random_generator()());
+  uuid_t uuid;
+  char uuid_str[37];
+  uuid_generate(uuid);
+  uuid_unparse_lower(uuid, uuid_str);
+  session_uuid_ = uuid_str;
   self_exe_sha256_ = DynoRelayServer::getExeSha256FromPid(0);
 
   gatherNvidiaGpuProcInfo();
