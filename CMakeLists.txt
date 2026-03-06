@@ -56,6 +56,10 @@ if(NOT TARGET CURL::libcurl)
 endif()
 set(CURL_FOUND TRUE CACHE BOOL "" FORCE)
 set(CURL_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/curl/include" CACHE STRING "" FORCE)
+# FindCURL.cmake checks these singular-form variables via find_path/find_library;
+# pre-setting them prevents the system search that fails without libcurl-dev.
+set(CURL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/curl/include" CACHE PATH "" FORCE)
+set(CURL_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/third_party/curl/lib/libcurl${CMAKE_STATIC_LIBRARY_SUFFIX}" CACHE FILEPATH "" FORCE)
 
 # OpenSSL (needed by Azure SDK TLS)
 find_package(OpenSSL REQUIRED)
