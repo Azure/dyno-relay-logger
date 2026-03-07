@@ -17,7 +17,7 @@ find_package(Threads REQUIRED)
 # glog - static build from local third_party
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(WITH_GFLAGS OFF CACHE BOOL "" FORCE)
-set(GLOG_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 add_subdirectory(third_party/glog EXCLUDE_FROM_ALL)
 
 # gflags - static build from local third_party

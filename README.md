@@ -2,7 +2,7 @@
 
 DynoRelayLogger is a metrics relay server that receives telemetry data from [dynolog](https://github.com/facebookincubator/dynolog) clients and forwards it to [Azure Event Hubs](https://learn.microsoft.com/en-us/azure/event-hubs/).
 
-It acts as a bridge between dynolog's `FBRelayLogger` output and Azure's event streaming infrastructure. Dynolog clients connect over a Unix domain socket and send newline-delimited JSON metric payloads. DynoRelayLogger receives these, enriches them with VM metadata (hostname, location, VM ID, session UUID), auto-detects the metric entity type, and routes each payload to the appropriate Event Hub.
+It acts as a bridge between dynolog's `UdsRelayLogger` output and Azure's event streaming infrastructure. Dynolog clients connect over a Unix domain socket and send newline-delimited JSON metric payloads. DynoRelayLogger receives these, enriches them with VM metadata (hostname, location, VM ID, session UUID), auto-detects the metric entity type, and routes each payload to the appropriate Event Hub.
 
 ### Key features
 
@@ -50,9 +50,23 @@ DynoRelayLogger enriches each JSON payload with `hostname`, `location`, `vmid`, 
 
 - **CMake** ≥ 3.16
 - **C++17** compiler (GCC 9+, Clang 10+)
-- **OpenSSL** development libraries
-- **Boost** (for UUID generation)
-- **Rust** toolchain (for the Azure SDK AMQP backend; required by the `aehubs` sink)
+- **OpenSSL** development libraries (`libssl-dev`)
+- **pkg-config**
+- **libuuid** development libraries (`uuid-dev`)
+- **Rust** toolchain ≥ 1.80 (for the Azure SDK AMQP backend; required by the `aehubs` sink)
+
+On Ubuntu/Debian:
+
+```bash
+sudo apt-get install -y cmake g++ pkg-config uuid-dev libssl-dev
+```
+
+If your system Rust is too old (< 1.80), install a recent toolchain via [rustup](https://rustup.rs/):
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+source "$HOME/.cargo/env"
+```
 
 Third-party dependencies built from source (in `third_party/`):
 - [glog](https://github.com/google/glog)
@@ -65,9 +79,17 @@ Third-party dependencies built from source (in `third_party/`):
 ### Building
 
 ```bash
+git submodule update --init --recursive
 mkdir build && cd build
-cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-cmake --build . -j$(nproc)
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build . -j4
+```
+
+If the Rust `openssl-sys` crate fails to find OpenSSL, set the library path before building:
+
+```bash
+export OPENSSL_LIB_DIR=/usr/lib/x86_64-linux-gnu
+export OPENSSL_INCLUDE_DIR=/usr/include/openssl
 ```
 
 ### Running
