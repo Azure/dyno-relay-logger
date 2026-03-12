@@ -52,6 +52,7 @@ class GatherSystemInfo {
   void getHostLocationId(std::string& hostname, std::string& location,
                          std::string& vmid, std::string& session_uuid) const;
   bool isDcgmAvailable() const;
+  bool isEventHubsAvailable() const;
   std::string getClientId() const;
   std::string getEhNamespace() const;
 
@@ -63,6 +64,7 @@ class GatherSystemInfo {
   std::vector<GpuProcInfo> gpus_;
   std::vector<NicInfo> nics_;
   bool dcgm_available_ = false;
+  bool eh_send_available_ = false;
   nlohmann::json azure_system_info_;
   std::string session_uuid_;
   std::string self_exe_sha256_;
@@ -73,7 +75,7 @@ class GatherSystemInfo {
   void readLocalMachineIds();
   void fetchImdsMetadata(const std::list<std::string>& computeKeys);
   void gatherAzureMetadata();
-  void verifyManagedIdentityClientId();
+  bool verifyAzureEventHubsSendAccess();
   std::string parseNvidiaInfoValue(const std::string& s);
   static size_t curlWriteFunction(void* contents, size_t size, size_t nmemb,
                               std::string* data);

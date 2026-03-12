@@ -149,9 +149,6 @@ void DynoRelayServer::processMessage(const std::string& msg) {
       LOG(INFO) << "[" << entity << "] " << json_data;
     }
 
-    // Record rx stats
-    stats_->recordRx(entity, bytes);
-
     // Dispatch to all active sinks
     for (auto& sink : sinks_) {
       if (sink->forward(json_data, entity)) {
@@ -277,6 +274,17 @@ void DynoRelayServer::handleClient(int client_fd) {
       std::string msg = buffer.substr(0, pos);
       buffer.erase(0, pos + 1);
       if (!msg.empty()) {
+        // Record rx at socket receive time, before any parsing/enrichment
+        std::string entity = "unknown";
+        size_t comma_pos = msg.find(',');
+        if (comma_pos != std::string::npos) {
+          entity = msg.substr(0, comma_pos);
+          if (entity.length() >= 2 && entity.substr(0, 2) == "::") {
+            entity.erase(0, 2);
+          }
+        }
+        stats_->recordRx(entity, static_cast<int64_t>(msg.size()));
+
         processMessage(msg);
         client_id->last_seen = std::time(nullptr);
       }
