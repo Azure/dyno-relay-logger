@@ -25,8 +25,12 @@ DEFINE_string(logger_socket, "/var/run/dyno-relay-logger.sock",
 DEFINE_int32(info_port, 1779,
              "Port for the info service (GetStats)");
 DEFINE_string(forward, "",
-              "Comma-separated list of forwarding sinks to enable. "
-              "Options: file, aehubs. Default: empty (drop all metrics)");
+              "Comma-separated list of forwarding sinks to enable. \n"
+              "Options: file, aehubs\n"
+              "  file - forward metrics to local files in "
+                "/tmp/dyno-relay-logger/ for debugging. \n"
+              "  aehubs - forward metrics to Azure Event Hubs (Azure SDK). \n"
+              "Default: empty (drop all metrics)");
 DEFINE_bool(verbose, false,
             "Echo all received metrics to stdout");
 
@@ -75,6 +79,10 @@ int main(int argc, char* argv[]) {
         LOG(INFO) << "Enabling file sink (/tmp/dyno-relay-logger/)";
         sinks.push_back(std::make_shared<dynorelaylogger::FileSink>());
       } else if (token == "aehubs") {
+        if (!sysinfo->isEventHubsAvailable()) {
+          LOG(WARNING) << "Skipping Azure Event Hubs sink: send access not verified";
+          continue;
+        }
         LOG(INFO) << "Enabling Azure Event Hubs (Azure SDK) sink...";
         auto forwarder =
             std::make_shared<dynorelaylogger::AeHubsClient>(sysinfo, stats);

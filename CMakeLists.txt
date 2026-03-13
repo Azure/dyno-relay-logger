@@ -126,3 +126,7 @@ target_link_libraries(dynorelaylogger PRIVATE ssl crypto)
 # ─── DynoRelayLoggerInfo executable (JSON RPC client) ───
 add_executable(dynorelayloggerinfo src/dynorelayloggerinfo.cpp)
 target_link_libraries(dynorelayloggerinfo PRIVATE nlohmann_json::nlohmann_json Threads::Threads)
+
+# ─── Example: CPU logger ───
+add_executable(cpu_logger examples/cpu_logger.cpp)
+target_link_libraries(cpu_logger PRIVATE gflags::gflags nlohmann_json::nlohmann_json Threads::Threads)

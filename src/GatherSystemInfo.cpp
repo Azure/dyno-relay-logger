@@ -50,7 +50,7 @@ GatherSystemInfo::GatherSystemInfo() {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
   } 
-  verifyManagedIdentityClientId();
+  eh_send_available_ = verifyAzureEventHubsSendAccess();
 }
 
 std::vector<GpuProcInfo> GatherSystemInfo::getGpuInfo() const {
@@ -65,6 +65,10 @@ bool GatherSystemInfo::isDcgmAvailable() const {
   return dcgm_available_;
 }
 
+bool GatherSystemInfo::isEventHubsAvailable() const {
+  return eh_send_available_;
+}
+
 std::string GatherSystemInfo::getClientId() const {
   return client_id_;
 }
@@ -73,7 +77,7 @@ std::string GatherSystemInfo::getEhNamespace() const {
   return eh_namespace_;
 }
 
-void GatherSystemInfo::verifyManagedIdentityClientId() {
+bool GatherSystemInfo::verifyAzureEventHubsSendAccess() {
   std::string fqns = "" + eh_namespace_ + ".servicebus.windows.net";
 
   LOG(INFO) << "Verifying managed identity client_id_=" << client_id_
@@ -103,16 +107,18 @@ void GatherSystemInfo::verifyManagedIdentityClientId() {
     producer.Send(batch);
 
     LOG(INFO) << "Managed identity verified: sent test event to dynolog_daemon";
+    return true;
   } catch (const Azure::Core::Credentials::AuthenticationException& e) {
-    LOG(FATAL) << "Managed identity auth failed (client_id_=" << client_id_
-               << "): " << e.what();
+    LOG(WARNING) << "Managed identity auth failed (client_id_=" << client_id_
+                 << "): " << e.what();
   } catch (const Azure::Core::RequestFailedException& e) {
-    LOG(FATAL) << "Managed identity lacks RBAC permissions (client_id_="
-               << client_id_ << "): " << e.what();
+    LOG(WARNING) << "Managed identity lacks RBAC permissions (client_id_="
+                 << client_id_ << "): " << e.what();
   } catch (const std::exception& e) {
-    LOG(FATAL) << "Failed to verify managed identity credential (client_id_="
-               << client_id_ << "): " << e.what();
+    LOG(WARNING) << "Failed to verify managed identity credential (client_id_="
+                 << client_id_ << "): " << e.what();
   }
+  return false;
 }
 
 nlohmann::json GatherSystemInfo::getAzureSystemInfo() const {
